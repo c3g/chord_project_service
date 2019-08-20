@@ -133,7 +133,7 @@ def project_detail(project_id):
         preprocess_project(new_project)
 
         c.execute("UPDATE projects SET name = ?, description = ?, data_use = ? WHERE id = ?",
-                  (new_project["name"], new_project["description"], new_project["data"], project["id"]))
+                  (new_project["name"], new_project["description"], json.dumps(new_project["data_use"]), project["id"]))
 
         db.commit()
 

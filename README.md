@@ -1,16 +1,16 @@
-# chord_federation
+# chord_project_service
 
 ```json
 {
-  "id": "federation",
-  "repository": "https://bitbucket.org/genap/chord_federation",
+  "id": "project",
+  "repository": "https://bitbucket.org/genap/chord_project_service",
   "data_service": false,
   "apt_dependencies": [],
   "wsgi": true,
-  "python_module": "chord_federation.app",
+  "python_module": "chord_project_service.app",
   "python_callable": "application",
   "python_environment": {
-    "DATABASE": "{SERVICE_DATA}/federation.db"
+    "DATABASE": "{SERVICE_DATA}/project_service.db"
   }
 }
 ```

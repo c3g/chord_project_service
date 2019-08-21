@@ -108,7 +108,11 @@ def project_list():
     c.execute("SELECT * FROM projects")
     db.commit()
 
-    return jsonify([dict(p) for p in c.fetchall()])
+    projects = [dict(p) for p in c.fetchall()]
+    for project in projects:
+        project["data_use"] = json.loads(project["data_use"])
+
+    return jsonify(projects)
 
 
 # TODO: Authentication
@@ -143,7 +147,10 @@ def project_detail(project_id):
         c.execute("DELETE FROM projects WHERE id = ?", (project_id,))
         return Response(status=204)
 
-    return jsonify(dict(project))
+    project = dict(project)
+    project["data_use"] = json.loads(project["data_use"])
+
+    return jsonify(project)
 
 
 @application.route("/service-info", methods=["GET"])

@@ -221,6 +221,5 @@ def service_info():
             "url": "https://genap.ca/"
         },
         "contactUrl": "mailto:david.lougheed@mail.mcgill.ca",
-        "version": chord_project_service.__version__,
-        "extension": {}
+        "version": chord_project_service.__version__
     })

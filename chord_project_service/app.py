@@ -216,7 +216,10 @@ def service_info():
         "name": "CHORD Project Service",                       # TODO: Should be globally unique
         "type": "urn:chord:project_service",                   # TODO
         "description": "Project service for a CHORD application.",
-        "organization": "GenAP",
+        "organization": {
+            "name": "GenAP",
+            "url": "https://genap.ca/"
+        },
         "contactUrl": "mailto:david.lougheed@mail.mcgill.ca",
         "version": chord_project_service.__version__,
         "extension": {}

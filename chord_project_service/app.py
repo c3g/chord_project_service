@@ -4,7 +4,7 @@ import sqlite3
 import chord_project_service
 
 from flask import Flask, g, json, jsonify, request, Response
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 
 application = Flask(__name__)
@@ -74,6 +74,31 @@ def validate_project(project):
 def preprocess_project(project):
     project["name"] = project["name"].strip()
     project["description"] = project["description"].strip()
+
+
+def validate_dataset(dataset):
+    if "dataset_id" not in dataset or "service_id" not in dataset or "data_type_id" not in dataset:
+        return False
+
+    if not isinstance(dataset["data_type_id"], str):
+        return False
+
+    try:
+        UUID(dataset["dataset_id"])
+        UUID(dataset["service_id"])
+        return True
+
+    except ValueError:
+        return False
+
+
+def preprocess_dataset(dataset):
+    # Standardize UUID formats
+    dataset["dataset_id"] = str(UUID(dataset["dataset_id"]))
+    dataset["service_id"] = str(UUID(dataset["service_id"]))
+
+    # Trim whitespace
+    dataset["data_type_id"] = dataset["data_type_id"].strip()
 
 
 # TODO: Authentication
@@ -151,6 +176,35 @@ def project_detail(project_id):
     project["data_use"] = json.loads(project["data_use"])
 
     return jsonify(project)
+
+
+# TODO: Authentication
+@application.route("/projects/<uuid:project_id>/datasets", methods=["GET", "POST"])
+def project_datasets(project_id):
+    db = get_db()
+    c = db.cursor()
+
+    c.execute("SELECT * FROM projects WHERE id = ?", (project_id,))
+
+    project = c.fetchone()
+
+    if project is None:
+        # TODO: Nicer errors
+        return Response(status=400)
+
+    if request.method == "POST":
+        new_dataset = request.json
+        if not validate_dataset(new_dataset):
+            return Response(status=400)
+
+        preprocess_dataset(new_dataset)
+
+        c.execute("INSERT INTO project_datasets (dataset_id, service_id, data_type_id, project_id) VALUES (?, ?, ?, ?)",
+                  (new_dataset["dataset_id"], new_dataset["service_id"], new_dataset["data_type_id"], project["id"]))
+
+    c.execute("SELECT * FROM project_datasets WHERE project_id = ?", (project_id,))
+
+    return jsonify([dict(r) for r in c.fetchall()])
 
 
 @application.route("/service-info", methods=["GET"])

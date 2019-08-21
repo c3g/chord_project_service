@@ -3,6 +3,7 @@ import sqlite3
 
 import chord_project_service
 
+from datetime import datetime, timezone
 from flask import Flask, g, json, jsonify, request, Response
 from uuid import uuid4, UUID
 
@@ -123,14 +124,16 @@ def project_list():
             # Already exists
             return Response(status=400)
 
-        c.execute("INSERT INTO projects (id, name, description, data_use) VALUES (?, ?, ?, ?)",
-                  (str(uuid4()), project["name"], project["description"], json.dumps(project["data_use"])))
+        now = datetime.now(timezone.utc).isoformat()
+
+        c.execute("INSERT INTO projects (id, name, description, data_use, created, updated) VALUES (?, ?, ?, ?, ?, ?)",
+                  (str(uuid4()), project["name"], project["description"], json.dumps(project["data_use"]), now, now))
 
         db.commit()
 
         return Response(status=201)
 
-    c.execute("SELECT * FROM projects")
+    c.execute("SELECT * FROM projects ORDER BY name")
     db.commit()
 
     projects = [dict(p) for p in c.fetchall()]
@@ -161,8 +164,9 @@ def project_detail(project_id):
 
         preprocess_project(new_project)
 
-        c.execute("UPDATE projects SET name = ?, description = ?, data_use = ? WHERE id = ?",
-                  (new_project["name"], new_project["description"], json.dumps(new_project["data_use"]), project["id"]))
+        c.execute("UPDATE projects SET name = ?, description = ?, data_use = ?, updated = ? WHERE id = ?",
+                  (new_project["name"], new_project["description"], json.dumps(new_project["data_use"]), project["id"],
+                   datetime.now(timezone.utc).isoformat()))
 
         db.commit()
 
@@ -202,7 +206,7 @@ def project_datasets(project_id):
         c.execute("INSERT INTO project_datasets (dataset_id, service_id, data_type_id, project_id) VALUES (?, ?, ?, ?)",
                   (new_dataset["dataset_id"], new_dataset["service_id"], new_dataset["data_type_id"], project["id"]))
 
-    c.execute("SELECT * FROM project_datasets WHERE project_id = ?", (project_id,))
+    c.execute("SELECT * FROM project_datasets WHERE project_id = ? ORDER BY dataset_id", (project_id,))
 
     return jsonify([dict(r) for r in c.fetchall()])
 

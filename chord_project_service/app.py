@@ -195,6 +195,7 @@ def project_detail(project_id):
 
     elif request.method == "DELETE":
         c.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+        db.commit()
         return application.response_class(status=204)
 
     project = dict(project)

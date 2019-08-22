@@ -233,7 +233,7 @@ def project_datasets(project_id):
 
         db.commit()
 
-        c.execute("SELECT * FROM project_datasets WHERE dataset_id = ?", new_dataset["dataset_id"])
+        c.execute("SELECT * FROM project_datasets WHERE dataset_id = ?", (new_dataset["dataset_id"],))
         created_dataset = c.fetchone()
         if created_dataset is None:
             # TODO: Better error message

@@ -48,7 +48,7 @@ def update_db():
     db = get_db()
     c = db.cursor()
 
-    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='peers'")
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='projects'")
     if c.fetchone() is None:
         init_db()
         return
@@ -154,7 +154,6 @@ def project_list():
         return application.response_class(response=json.dumps(created_project), mimetype=MIME_TYPE, status=201)
 
     c.execute("SELECT * FROM projects ORDER BY name")
-    db.commit()
 
     projects = [dict(p) for p in c.fetchall()]
     for project in projects:

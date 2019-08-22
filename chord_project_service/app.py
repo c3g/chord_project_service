@@ -146,6 +146,7 @@ def project_list():
         c.execute("SELECT * FROM projects WHERE id = ?", (new_id,))
         created_project = c.fetchone()
         if created_project is None:
+            # TODO: Better error message
             return application.response_class(status=500)
 
         created_project = dict(created_project)
@@ -229,6 +230,16 @@ def project_datasets(project_id):
 
         c.execute("INSERT INTO project_datasets (dataset_id, service_id, data_type_id, project_id) VALUES (?, ?, ?, ?)",
                   (new_dataset["dataset_id"], new_dataset["service_id"], new_dataset["data_type_id"], project["id"]))
+
+        db.commit()
+
+        c.execute("SELECT * FROM project_datasets WHERE dataset_id = ?", new_dataset["dataset_id"])
+        created_dataset = c.fetchone()
+        if created_dataset is None:
+            # TODO: Better error message
+            return application.response_class(status=500)
+
+        return application.response_class(response=json.dumps(dict(created_dataset)), mimetype=MIME_TYPE, status=201)
 
     c.execute("SELECT * FROM project_datasets WHERE project_id = ? ORDER BY dataset_id", (project_id,))
 

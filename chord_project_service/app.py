@@ -165,6 +165,8 @@ def project_list():
 # TODO: Authentication
 @application.route("/projects/<uuid:project_id>", methods=["GET", "POST", "DELETE"])
 def project_detail(project_id):
+    project_id = str(project_id)
+
     db = get_db()
     c = db.cursor()
 

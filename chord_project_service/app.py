@@ -4,14 +4,21 @@ import sqlite3
 import chord_project_service
 
 from datetime import datetime, timezone
-from flask import Flask, g, json, jsonify, request, Response
+from flask import Flask, g, json, jsonify, request
+from jsonschema import validate, ValidationError
 from uuid import uuid4, UUID
+
+
+MIME_TYPE = "application/json"
 
 
 application = Flask(__name__)
 application.config.from_mapping(
     DATABASE=os.environ.get("DATABASE", "chord_project_service.db")
 )
+
+with application.open_resource("data_use.schema.json") as cf:
+    data_use_schema = json.loads(cf.read())
 
 
 def get_db():
@@ -63,11 +70,14 @@ def validate_project(project):
         return False
 
     if (not isinstance(project["name"], str) or not isinstance("description", str)
-            or not isinstance("data_use", dict)):
+            or not isinstance(project["data_use"], dict)):
         # Also checks None
         return False
 
-    # TODO: validate data_use
+    try:
+        validate(instance=project["data_use"], schema=data_use_schema)
+    except ValidationError as e:
+        return False
 
     return True
 
@@ -115,23 +125,33 @@ def project_list():
         # TODO: Better errors
 
         if not validate_project(project):
-            return Response(status=400)
+            return application.response_class(status=400)
 
         preprocess_project(project)
 
         c.execute("SELECT name FROM projects WHERE name = ?", (project["name"],))
         if c.fetchone() is not None:
             # Already exists
-            return Response(status=400)
+            return application.response_class(status=400)
 
         now = datetime.now(timezone.utc).isoformat()
 
+        new_id = str(uuid4())
+
         c.execute("INSERT INTO projects (id, name, description, data_use, created, updated) VALUES (?, ?, ?, ?, ?, ?)",
-                  (str(uuid4()), project["name"], project["description"], json.dumps(project["data_use"]), now, now))
+                  (new_id, project["name"], project["description"], json.dumps(project["data_use"]), now, now))
 
         db.commit()
 
-        return Response(status=201)
+        c.execute("SELECT * FROM projects WHERE id = ?", (new_id,))
+        created_project = c.fetchone()
+        if created_project is None:
+            return application.response_class(status=500)
+
+        created_project = dict(created_project)
+        created_project["data_use"] = json.loads(created_project["data_use"])
+
+        return application.response_class(response=json.dumps(created_project), mimetype=MIME_TYPE, status=201)
 
     c.execute("SELECT * FROM projects ORDER BY name")
     db.commit()
@@ -155,12 +175,12 @@ def project_detail(project_id):
 
     if project is None:
         # TODO: Nicer errors
-        return Response(status=400)
+        return application.response_class(status=400)
 
     if request.method == "POST":
         new_project = request.json
         if not validate_project(new_project):
-            return Response(status=400)
+            return application.response_class(status=400)
 
         preprocess_project(new_project)
 
@@ -170,11 +190,11 @@ def project_detail(project_id):
 
         db.commit()
 
-        return Response(status=204)
+        return application.response_class(status=204)
 
     elif request.method == "DELETE":
         c.execute("DELETE FROM projects WHERE id = ?", (project_id,))
-        return Response(status=204)
+        return application.response_class(status=204)
 
     project = dict(project)
     project["data_use"] = json.loads(project["data_use"])
@@ -194,12 +214,12 @@ def project_datasets(project_id):
 
     if project is None:
         # TODO: Nicer errors
-        return Response(status=400)
+        return application.response_class(status=400)
 
     if request.method == "POST":
         new_dataset = request.json
         if not validate_dataset(new_dataset):
-            return Response(status=400)
+            return application.response_class(status=400)
 
         preprocess_dataset(new_dataset)
 

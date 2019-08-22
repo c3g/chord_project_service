@@ -207,6 +207,8 @@ def project_detail(project_id):
 # TODO: Authentication
 @application.route("/projects/<uuid:project_id>/datasets", methods=["GET", "POST"])
 def project_datasets(project_id):
+    project_id = str(project_id)
+
     db = get_db()
     c = db.cursor()
 

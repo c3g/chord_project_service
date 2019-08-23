@@ -187,8 +187,8 @@ def project_detail(project_id):
         preprocess_project(new_project)
 
         c.execute("UPDATE projects SET name = ?, description = ?, data_use = ?, updated = ? WHERE id = ?",
-                  (new_project["name"], new_project["description"], json.dumps(new_project["data_use"]), project["id"],
-                   datetime.now(timezone.utc).isoformat()))
+                  (new_project["name"], new_project["description"], json.dumps(new_project["data_use"]),
+                   datetime.now(timezone.utc).isoformat(), project["id"]))
 
         db.commit()
 

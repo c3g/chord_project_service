@@ -192,7 +192,12 @@ def project_detail(project_id):
 
         db.commit()
 
-        return application.response_class(status=204)
+        c.execute("SELECT * FROM projects WHERE id = ?", (project["id"], ))
+        project = c.fetchone()
+        if project is None:
+            return application.response_class(status=500)
+
+        # Return by falling out of the branch
 
     elif request.method == "DELETE":
         c.execute("DELETE FROM projects WHERE id = ?", (project_id,))

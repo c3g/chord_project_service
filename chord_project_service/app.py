@@ -76,7 +76,7 @@ def validate_project(project):
 
     try:
         validate(instance=project["data_use"], schema=data_use_schema)
-    except ValidationError as e:
+    except ValidationError:
         return False
 
     return True
@@ -113,6 +113,7 @@ def preprocess_dataset(dataset):
 
 
 # TODO: Authentication
+# TODO: Make sure others can't POST to create projects
 @application.route("/projects", methods=["GET", "POST"])
 def project_list():
     db = get_db()

@@ -1,4 +1,6 @@
-# chord_project_service
+# CHORD Project Service
+
+Project, data use, and dataset ownership management service for the CHORD project.
 
 ```json
 {

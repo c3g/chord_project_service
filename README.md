@@ -5,7 +5,7 @@ Project, data use, and dataset ownership management service for the CHORD projec
 ```json
 {
   "id": "project",
-  "repository": "https://bitbucket.org/genap/chord_project_service",
+  "repository": "https://github.com/c3g/chord_project_service",
   "data_service": false,
   "apt_dependencies": [],
   "wsgi": true,
